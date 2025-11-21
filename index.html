@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCoinS PRO - Коллекционные монеты</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #1f2937;
+            min-height: 100vh;
+            padding: 16px;
+            line-height: 1.6;
+        }
+        
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .balance-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #667eea, #5a6fd8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .menu {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .menu-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 120px;
+            font-size: 0.9em;
+        }
+        
+        .menu-btn:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+        
+        .menu-btn.active {
+            background: #f59e0b;
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            display: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .section.active { 
+            display: block; 
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .section h2 { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            color: #1f2937;
+            font-size: 1.5em;
+        }
+        
+        .coins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .coin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        
+        .coin-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border-color: #f59e0b;
+        }
+        
+        .coin-icon { 
+            font-size: 3.5em; 
+            margin-bottom: 12px; 
+        }
+        
+        .coin-name { 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            font-size: 1.1em; 
+        }
+        
+        .coin-rarity {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .rarity-common { background: #6b7280; }
+        .rarity-rare { background: #3b82f6; }
+        .rarity-epic { background: #8b5cf6; }
+        .rarity-legendary { 
+            background: linear-gradient(45deg, #f59e0b, #e67e22);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+        
+        .coin-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #f59e0b;
+            margin: 12px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #f59e0b, #e67e22);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+        
+        .btn:hover { 
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn:disabled { 
+            background: #d1d5db; 
+            cursor: not-allowed; 
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            margin-top: 8px;
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8em;
+            width: auto;
+        }
+        
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .payment-option {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .payment-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .payment-option.selected {
+            border-color: #f59e0b;
+            background: #fffaf0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+        
+        .payment-option .icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+        
+        .payment-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .payment-desc {
+            font-size: 0.9em;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .amount-btn {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .amount-btn:hover {
+            border-color: #f59e0b;
+            background: #fffaf0;
+        }
+        
+        .amount-btn.selected {
+            border-color: #f59e0b;
+            background: #fffaf0;
+            color: #f59e0b;
+        }
+        
+        .custom-amount {
+            margin: 20px 0;
+        }
+        
+        .custom-amount label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .custom-amount input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+        
+        .custom-amount input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        
+        .payment-btn {
+            margin-top: 20px;
+            font-size: 1.1em;
+            padding: 15px;
+        }
+        
+        .marketplace-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .sell-form {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .marketplace-item {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        .marketplace-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .marketplace-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        
+        .seller-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f59e0b, #e67e22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .user-rating {
+            display: inline-block;
+            background: #fbbf24;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            margin-left: 8px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.large {
+            padding: 20px;
+        }
+        
+        .stat-card h3 {
+            margin-bottom: 16px;
+            color: #1f2937;
+            font-size: 1.2em;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .collection-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .notification.error {
+            background: #ef4444;
+        }
+        
+        .notification.info {
+            background: #3b82f6;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .modal-actions .btn {
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        
+        .address-box {
+            background: #1f2937;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .address-box:hover {
+            background: #374151;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #f59e0b;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        .daily-reward {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .invite-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            
+            .header-top { 
+                flex-direction: column; 
+                gap: 12px; 
+                text-align: center;
+            }
+            
+            .coins-grid { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .menu { 
+                flex-direction: column; 
+            }
+            
+            .payment-options { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .amount-buttons { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            
+            .marketplace-item { 
+                flex-direction: column; 
+                text-align: center; 
+            }
+            
+            .marketplace-actions { 
+                margin-left: 0; 
+                margin-top: 12px; 
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-top">
+                <h1>🪙 SCoinS PRO</h1>
+                <div class="balance-card">
+                    <span id="balance">100</span>
+                    <span>⭐</span>
+                </div>
+            </div>
+            
+            <div class="menu">
+                <button class="menu-btn active" onclick="showSection('shop')">🏪 Магазин</button>
+                <button class="menu-btn" onclick="showSection('collection')">🎒 Коллекция</button>
+                <button class="menu-btn" onclick="showSection('marketplace')">🔄 Рынок</button>
+                <button class="menu-btn" onclick="showSection('daily')">🎁 Ежедневно</button>
+                <button class="menu-btn" onclick="showSection('invite')">👥 Пригласить</button>
+                <button class="menu-btn" onclick="showSection('topup')">💳 Пополнить</button>
+                <button class="menu-btn" onclick="showSection('stats')">📊 Статистика</button>
+            </div>
+        </header>
+        
+        <!-- Магазин -->
+        <section id="shop" class="section active">
+            <h2>🏪 Магазин монет</h2>
+            <div class="coins-grid" id="coinsGrid"></div>
+        </section>
+        
+        <!-- Коллекция -->
+        <section id="collection" class="section">
+            <h2>🎒 Ваша коллекция</h2>
+            <div id="collectionGrid"></div>
+        </section>
+        
+        <!-- Рынок -->
+        <section id="marketplace" class="section">
+            <h2>🔄 Торговая площадка</h2>
+            
+            <div class="marketplace-controls">
+                <div class="sell-form">
+                    <h3>💰 Продать свои монеты</h3>
+                    <p>Выберите монету из коллекции и установите свою цену</p>
+                    <button class="btn" onclick="showSection('collection')">
+                        📦 Перейти к коллекции
+                    </button>
+                </div>
+            </div>
+            
+            <h3>🏪 Активные предложения</h3>
+            <div id="marketplaceContent"></div>
+        </section>
+        
+        <!-- Ежедневные подарки -->
+        <section id="daily" class="section">
+            <h2>🎁 Ежедневные подарки</h2>
+            <div class="daily-reward">
+                <div style="font-size: 4em; margin-bottom: 20px;">🎁</div>
+                <h3 style="color: white; margin-bottom: 10px;">Забери свой ежедневный подарок!</h3>
+                <p style="color: white; margin-bottom: 20px; opacity: 0.9;">Каждый день ты получаешь 25 ⭐ бесплатно!</p>
+                <button class="btn" onclick="claimDailyReward()" style="background: white; color: #f59e0b; font-size: 1.2em; padding: 15px;">
+                    🎁 Получить 25 ⭐
+                </button>
+            </div>
+            <div style="text-align: center; color: #6b7280; margin-top: 20px;">
+                <p>💡 Возвращайся каждый день за новым подарком!</p>
+            </div>
+        </section>
+        
+        <!-- Пригласить друзей -->
+        <section id="invite" class="section">
+            <h2>👥 Пригласи друзей</h2>
+            <div class="invite-section">
+                <div style="font-size: 3em; margin-bottom: 20px;">👥</div>
+                <h3 style="color: white; margin-bottom: 10px;">Пригласи друга и получите бонус!</h3>
+                <p style="color: white; margin-bottom: 20px; opacity: 0.9;">За каждого приглашенного друга вы получаете по 50 ⭐!</p>
+                
+                <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 12px; margin: 20px 0;">
+                    <p style="color: white; margin-bottom: 10px;">Твоя пригласительная ссылка:</p>
+                    <div id="inviteLink" style="background: white; color: #1f2937; padding: 15px; border-radius: 8px; margin: 10px 0; word-break: break-all; font-family: monospace;">
+                        https://t.me/your_bot?start=invite_123456
+                    </div>
+                    <button class="btn" onclick="copyInviteLink()" style="background: white; color: #667eea;">
+                        📋 Скопировать ссылку
+                    </button>
+                </div>
+            </div>
+            
+            <div style="color: #6b7280; margin-top: 20px; text-align: center;">
+                <p>🎯 Как приглашать:</p>
+                <ol style="text-align: left; display: inline-block; margin-top: 10px;">
+                    <li>Скопируй ссылку выше</li>
+                    <li>Отправь другу в Telegram</li>
+                    <li>Когда друг запустит игру - вы оба получите 50 ⭐!</li>
+                </ol>
+            </div>
+        </section>
+        
+        <!-- Пополнение -->
+        <section id="topup" class="section">
+            <h2>💳 Пополнение баланса</h2>
+            
+            <div class="payment-options">
+                <div class="payment-option selected" onclick="selectPayment('stars')">
+                    <div class="icon">⭐</div>
+                    <div class="payment-title">Telegram Stars</div>
+                    <div class="payment-desc">
+                        1 звезда = 1 ⭐ в игре<br>
+                        ⚡ Мгновенное пополнение
+                    </div>
+                </div>
+                
+                <div class="payment-option" onclick="selectPayment('ton')">
+                    <div class="icon">⚡</div>
+                    <div class="payment-title">TON</div>
+                    <div class="payment-desc">
+                        1 TON = 150 ⭐<br>
+                        🔄 Автопроверка
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Выберите сумму:</h3>
+            <div class="amount-buttons">
+                <button class="amount-btn" onclick="selectAmount(15)">15 ⭐</button>
+                <button class="amount-btn" onclick="selectAmount(25)">25 ⭐</button>
+                <button class="amount-btn" onclick="selectAmount(50)">50 ⭐</button>
+                <button class="amount-btn selected" onclick="selectAmount(100)">100 ⭐</button>
+                <button class="amount-btn" onclick="selectAmount(500)">500 ⭐</button>
+                <button class="amount-btn" onclick="selectAmount(1000)">1,000 ⭐</button>
+            </div>
+            
+            <div class="custom-amount">
+                <label>Или введите свою сумму:</label>
+                <input type="number" id="customAmount" placeholder="Введите сумму" min="15" max="100000">
+            </div>
+            
+            <button class="btn payment-btn" onclick="startPayment()">
+                💳 Перейти к оплате
+            </button>
+        </section>
+        
+        <!-- Статистика -->
+        <section id="stats" class="section">
+            <h2>📊 Статистика</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card large">
+                    <h3>📈 Общая статистика</h3>
+                    <div class="stat-item">
+                        <span>Баланс:</span>
+                        <strong id="statBalance">0 ⭐</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Всего монет:</span>
+                        <strong id="statTotalCoins">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Уникальных монет:</span>
+                        <strong id="statUniqueCoins">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Общая стоимость:</span>
+                        <strong id="statTotalValue">0 ⭐</strong>
+                    </div>
+                </div>
+                
+                <div class="stat-card large">
+                    <h3>💰 Рыночная активность</h3>
+                    <div class="stat-item">
+                        <span>Продано монет:</span>
+                        <strong id="statSold">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Куплено с рынка:</span>
+                        <strong id="statBought">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Всего транзакций:</span>
+                        <strong id="statTransactions">0</strong>
+                    </div>
+                </div>
+                
+                <div class="stat-card large">
+                    <h3>🌐 Онлайн-рынок</h3>
+                    <div class="stat-item">
+                        <span>Всего предложений:</span>
+                        <strong id="marketTotal">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Общая стоимость:</span>
+                        <strong id="marketValue">0 ⭐</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Средняя цена:</span>
+                        <strong id="marketAverage">0 ⭐</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Уведомления -->
+    <div class="notification" id="notification"></div>
+    
+    <!-- Модальные окна -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <h3 id="paymentTitle">💳 Оплата</h3>
+            <div id="paymentContent"></div>
+        </div>
+    </div>
+    
+    <div class="modal" id="sellModal">
+        <div class="modal-content">
+            <h3>💰 Продать монету</h3>
+            <div id="sellCoinInfo"></div>
+            <div class="form-group">
+                <label>Цена продажи (в звездах):</label>
+                <input type="number" id="sellPrice" placeholder="Укажите цену" min="1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="confirmSell()">✅ Выставить на продажу</button>
+                <button class="btn btn-secondary" onclick="closeModal('sellModal')">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="coinInfoModal">
+        <div class="modal-content">
+            <h3 id="coinInfoTitle">Информация о монете</h3>
+            <div id="coinInfoContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== ВСЯ ИГРА В ОДНОМ ФАЙЛЕ ==========
+
+        // Настройки игры
+        const CONFIG = {
+            VERSION: '4.0.0',
+            GAME_NAME: 'SCoinS PRO',
+            SERVER_URL: 'https://scoins-pr00.vercel.app', // Замени на свой URL
+            
+            STARTING_BALANCE: 100,
+            MIN_TOPUP_AMOUNT: 15,
+            MAX_TOPUP_AMOUNT: 100000,
+            
+            PAYMENT_METHODS: {
+                STARS: { name: 'Telegram Stars', rate: 1, enabled: true },
+                TON: { name: 'TON', rate: 150, enabled: true }
+            },
+            
+            PAYMENT_ADDRESSES: {
+                STARS: '@Shafir_052',
+                TON: 'UQDuq8KaK8kAjmAQ434CZnqHi-tnJ6FV58zkkFi6jvbah-H5'
+            },
+            
+            MARKETPLACE: {
+                COMMISSION: 0.05,
+                MIN_SELL_PRICE: 1,
+                MAX_ITEMS_PER_USER: 10
+            },
+            
+            // 12 КРУТЫХ МОНЕТОК!
+            COINS: [
+                {id: 1, name: "Бронзовый SCoin", icon: "🟫", price: 5, rarity: "common", description: "Базовая монета для начала коллекции", edition: "Standard"},
+                {id: 2, name: "Серебряный SCoin", icon: "⚪", price: 15, rarity: "rare", description: "Монета из чистого серебра", edition: "Premium"},
+                {id: 3, name: "Золотой SCoin", icon: "🟡", price: 50, rarity: "epic", description: "Роскошная золотая монета", edition: "Deluxe"},
+                {id: 4, name: "Платиновый SCoin", icon: "🔘", price: 100, rarity: "legendary", description: "Эксклюзивная платиновая монета", edition: "Exclusive"},
+                {id: 5, name: "Кристальный SCoin", icon: "💎", price: 200, rarity: "legendary", description: "Монета из чистого кристалла", edition: "Crystal"},
+                {id: 6, name: "Древний SCoin", icon: "🏺", price: 150, rarity: "epic", description: "Монета древней цивилизации", edition: "Ancient"},
+                {id: 7, name: "Огненный SCoin", icon: "🔥", price: 80, rarity: "epic", description: "Горячая монета из вулкана", edition: "Fire"},
+                {id: 8, name: "Ледяной SCoin", icon: "❄️", price: 90, rarity: "epic", description: "Холодная монета с ледника", edition: "Ice"},
+                {id: 9, name: "Радужный SCoin", icon: "🌈", price: 300, rarity: "legendary", description: "Разноцветная волшебная монета", edition: "Rainbow"},
+                {id: 10, name: "Космический SCoin", icon: "🚀", price: 250, rarity: "legendary", description: "Монета с метеоритной пылью", edition: "Space"},
+                {id: 11, name: "Призрачный SCoin", icon: "👻", price: 120, rarity: "rare", description: "Таинственная полупрозрачная монета", edition: "Ghost"},
+                {id: 12, name: "Драконий SCoin", icon: "🐉", price: 400, rarity: "legendary", description: "Монета из драконьей чешуи", edition: "Dragon"}
+            ],
+            
+            RARITIES: {
+                common: { name: "Обычная", color: "#6b7280", multiplier: 1 },
+                rare: { name: "Редкая", color: "#3b82f6", multiplier: 2 },
+                epic: { name: "Эпическая", color: "#8b5cf6", multiplier: 3 },
+                legendary: { name: "Легендарная", color: "#f59e0b", multiplier: 5 }
+            }
+        };
+
+        // ОСНОВНАЯ ИГРА
+        class GameEngine {
+            constructor() {
+                this.balance = CONFIG.STARTING_BALANCE;
+                this.collection = [];
+                this.stats = {
+                    totalCoins: 0,
+                    totalValue: 0,
+                    totalSold: 0,
+                    totalBought: 0,
+                    totalTransactions: 0
+                };
+                this.userId = this.getUserId();
+                this.userName = this.getUserName();
+                this.marketplace = [];
+                
+                this.init();
+            }
+            
+            async init() {
+                console.log(`🎮 ${CONFIG.GAME_NAME} v${CONFIG.VERSION} запущен!`);
+                
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.expand();
+                    window.Telegram.WebApp.ready();
+                }
+                
+                this.loadGameData();
+                await this.loadMarketplace();
+                this.renderAll();
+                this.checkDailyReward();
+                this.updateInviteLink();
+            }
+            
+            loadGameData() {
+                try {
+                    const saved = localStorage.getItem('scoins_pro_save');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        this.balance = data.balance || CONFIG.STARTING_BALANCE;
+                        this.collection = data.collection || [];
+                        this.stats = data.stats || this.stats;
+                    }
+                } catch (e) {
+                    console.log('Используем начальные данные');
+                }
+            }
+            
+            saveGameData() {
+                const data = {
+                    balance: this.balance,
+                    collection: this.collection,
+                    stats: this.stats,
+                    version: CONFIG.VERSION,
+                    lastSave: Date.now()
+                };
+                localStorage.setItem('scoins_pro_save', JSON.stringify(data));
+            }
+            
+            // ЗАГРУЗКА РЫНКА
+            async loadMarketplace() {
+                try {
+                    const response = await fetch(`${CONFIG.SERVER_URL}/api/marketplace`);
+                    if (response.ok) {
+                        this.marketplace = await response.json();
+                    } else {
+                        console.log('Сервер недоступен, используем демо-данные');
+                        this.loadDemoMarketplace();
+                    }
+                } catch (error) {
+                    console.log('Ошибка загрузки рынка:', error);
+                    this.loadDemoMarketplace();
+                }
+            }
+            
+            loadDemoMarketplace() {
+                this.marketplace = [
+                    {
+                        globalId: 'demo_1',
+                        coin: { id: 101, name: "Редкий SCoin", icon: "🔴", price: 75, rarity: "rare", description: "Эксклюзивная редкая монета", edition: "Special" },
+                        price: 120,
+                        sellerId: 'user_123',
+                        sellerName: 'Алексей',
+                        sellerRating: 4.8,
+                        timestamp: Date.now() - 3600000
+                    },
+                    {
+                        globalId: 'demo_2',
+                        coin: { id: 102, name: "Старинный SCoin", icon: "🏛️", price: 120, rarity: "epic", description: "Монета древней цивилизации", edition: "Ancient" },
+                        price: 180,
+                        sellerId: 'user_456',
+                        sellerName: 'Мария',
+                        sellerRating: 4.9,
+                        timestamp: Date.now() - 7200000
+                    }
+                ];
+            }
+            
+            // ОСНОВНЫЕ ФУНКЦИИ ИГРЫ
+            renderAll() {
+                this.renderShop();
+                this.renderCollection();
+                this.renderMarketplace();
+                this.updateBalance();
+                this.calculateStats();
+                this.updateMarketStats();
+            }
+            
+            renderShop() {
+                const grid = document.getElementById('coinsGrid');
+                if (!grid) return;
+                
+                grid.innerHTML = CONFIG.COINS.map(coin => {
+                    const owned = this.collection.some(c => c.id === coin.id);
+                    const canBuy = this.balance >= coin.price && !owned;
+                    const rarityInfo = this.getRarityInfo(coin.rarity);
+                    
+                    return `
+                        <div class="coin-card" onclick="showCoinInfo(${coin.id})">
+                            <div class="coin-icon">${coin.icon}</div>
+                            <div class="coin-name">${coin.name}</div>
+                            <div class="coin-rarity rarity-${coin.rarity}">
+                                ${rarityInfo.name}
+                            </div>
+                            <div class="coin-price">${coin.price} ⭐</div>
+                            <button class="btn" onclick="event.stopPropagation(); buyCoin(${coin.id})" 
+                                    ${!canBuy ? 'disabled' : ''}>
+                                ${owned ? '✅ В коллекции' : canBuy ? 'Купить' : 'Недостаточно'}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            renderCollection() {
+                const grid = document.getElementById('collectionGrid');
+                if (!grid) return;
+                
+                if (this.collection.length === 0) {
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #6b7280;">
+                            <div style="font-size: 3em; margin-bottom: 12px;">🎒</div>
+                            <p>Коллекция пуста</p>
+                            <p style="font-size: 0.9em; margin-top: 8px;">Купите первую монету в магазине!</p>
+                            <button class="btn" onclick="showSection('shop')" style="margin-top: 16px;">
+                                🏪 Перейти в магазин
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<div style="display: flex; flex-wrap: wrap; gap: 12px;">';
+                this.collection.forEach((coin, index) => {
+                    html += `
+                        <div class="coin-card" style="width: 140px;" onclick="showCoinInfo(${coin.id})">
+                            <div class="coin-icon">${coin.icon}</div>
+                            <div style="font-weight: bold; font-size: 0.9em;">${coin.name}</div>
+                            <div style="font-size: 0.7em; color: #6b7280;">${this.getRarityInfo(coin.rarity).name}</div>
+                            <div style="color: #f59e0b; font-weight: bold; margin: 8px 0;">
+                                ${coin.price} ⭐
+                            </div>
+                            <button class="btn btn-secondary btn-small" 
+                                    onclick="event.stopPropagation(); sellCoin(${index})">
+                                💰 Продать
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                grid.innerHTML = html;
+            }
+            
+            renderMarketplace() {
+                const content = document.getElementById('marketplaceContent');
+                if (!content) return;
+                
+                if (this.marketplace.length === 0) {
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #6b7280;">
+                            <div style="font-size: 3em; margin-bottom: 12px;">🔄</div>
+                            <p>На рынке пока нет предложений</p>
+                            <p style="font-size: 0.9em; margin-top: 8px;">Будьте первым, кто выставит монету на продажу!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const sortedMarketplace = [...this.marketplace].sort((a, b) => b.timestamp - a.timestamp);
+                
+                content.innerHTML = sortedMarketplace.map((item, index) => {
+                    const isOwnItem = item.sellerId === this.userId;
+                    const canBuy = this.balance >= item.price && !isOwnItem;
+                    const rarityInfo = this.getRarityInfo(item.coin.rarity);
+                    const timeAgo = this.getTimeAgo(item.timestamp);
+                    
+                    return `
+                        <div class="marketplace-item">
+                            <div style="font-size: 2.5em; cursor: pointer;" 
+                                 onclick="showCoinInfo(${item.coin.id})">
+                                ${item.coin.icon}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; font-size: 1.1em; cursor: pointer;"
+                                     onclick="showCoinInfo(${item.coin.id})">
+                                    ${item.coin.name}
+                                </div>
+                                <div style="color: #6b7280; font-size: 0.9em;">
+                                    <span class="coin-rarity rarity-${item.coin.rarity}" 
+                                          style="font-size: 0.8em; padding: 2px 8px;">
+                                        ${rarityInfo.name}
+                                    </span>
+                                    • ${item.coin.edition}
+                                </div>
+                                <div class="seller-info">
+                                    <div class="seller-avatar">${item.sellerName.charAt(0)}</div>
+                                    <span>${item.sellerName}</span>
+                                    <span class="user-rating">⭐ ${item.sellerRating}</span>
+                                    <span style="color: #9ca3af; font-size: 0.8em;">• ${timeAgo}</span>
+                                </div>
+                                <div style="color: #f59e0b; font-weight: bold; font-size: 1.2em; margin-top: 4px;">
+                                    ${item.price} ⭐
+                                </div>
+                            </div>
+                            <div class="marketplace-actions">
+                                ${isOwnItem ? `
+                                    <button class="btn btn-secondary btn-small" 
+                                            onclick="cancelSale('${item.globalId}')">
+                                        ❌ Снять
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-small" 
+                                            onclick="buyFromMarketplace('${item.globalId}')" 
+                                            ${!canBuy ? 'disabled' : ''}>
+                                        Купить
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // ПОКУПКА МОНЕТ
+            buyCoin(coinId) {
+                const coin = CONFIG.COINS.find(c => c.id === coinId);
+                if (!coin) {
+                    this.showNotification('Монета не найдена', 'error');
+                    return false;
+                }
+                
+                if (this.collection.some(c => c.id === coinId)) {
+                    this.showNotification('Эта монета уже в коллекции', 'error');
+                    return false;
+                }
+                
+                if (this.balance < coin.price) {
+                    this.showNotification('Недостаточно звезд', 'error');
+                    return false;
+                }
+                
+                this.balance -= coin.price;
+                
+                const purchasedCoin = {
+                    ...coin,
+                    purchaseId: 'shop_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    purchaseDate: Date.now(),
+                    purchasePrice: coin.price
+                };
+                
+                this.collection.push(purchasedCoin);
+                this.stats.totalTransactions++;
+                
+                this.saveGameData();
+                this.calculateStats();
+                this.renderAll();
+                
+                this.showNotification(`🎉 Куплено: ${coin.name} за ${coin.price} ⭐!`);
+                return true;
+            }
+            
+            // ПРОДАЖА МОНЕТ
+            sellCoin(collectionIndex) {
+                if (collectionIndex < 0 || collectionIndex >= this.collection.length) {
+                    this.showNotification('Монета не найдена', 'error');
+                    return;
+                }
+                
+                window.currentSellCoin = this.collection[collectionIndex];
+                window.currentSellIndex = collectionIndex;
+                
+                const priceRange = this.calculateMarketPrice(
+                    window.currentSellCoin.price, 
+                    window.currentSellCoin.rarity
+                );
+                
+                const content = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 3em;">${window.currentSellCoin.icon}</div>
+                        <div style="font-weight: bold; font-size: 1.2em;">${window.currentSellCoin.name}</div>
+                        <div style="color: #6b7280;">${window.currentSellCoin.description}</div>
+                        <div style="margin-top: 12px; color: #f59e0b; font-weight: bold;">
+                            Исходная цена: ${window.currentSellCoin.price} ⭐
+                        </div>
+                        <div style="font-size: 0.9em; color: #6b7280; margin-top: 8px;">
+                            Рекомендуемая цена: ${priceRange.minPrice} - ${priceRange.maxPrice} ⭐
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('sellCoinInfo').innerHTML = content;
+                document.getElementById('sellPrice').value = Math.max(
+                    CONFIG.MARKETPLACE.MIN_SELL_PRICE,
+                    Math.floor(window.currentSellCoin.price * 1.2)
+                );
+                
+                this.showModal('sellModal');
+            }
+            
+            async confirmSell() {
+                if (!window.currentSellCoin) {
+                    this.showNotification('Монета не выбрана', 'error');
+                    return;
+                }
+                
+                const priceInput = document.getElementById('sellPrice');
+                const price = parseInt(priceInput.value);
+                
+                if (isNaN(price) || price < CONFIG.MARKETPLACE.MIN_SELL_PRICE) {
+                    this.showNotification(`Минимальная цена: ${CONFIG.MARKETPLACE.MIN_SELL_PRICE} ⭐`, 'error');
+                    return;
+                }
+                
+                const userItemsCount = this.marketplace.filter(item => 
+                    item.sellerId === this.userId
+                ).length;
+                
+                if (userItemsCount >= CONFIG.MARKETPLACE.MAX_ITEMS_PER_USER) {
+                    this.showNotification(`Лимит предложений: ${CONFIG.MARKETPLACE.MAX_ITEMS_PER_USER}`, 'error');
+                    return;
+                }
+                
+                const collectionIndex = this.collection.findIndex(coin => 
+                    coin.id === window.currentSellCoin.id && 
+                    coin.purchaseId === window.currentSellCoin.purchaseId
+                );
+                
+                if (collectionIndex === -1) {
+                    this.showNotification('Монета не найдена в коллекции', 'error');
+                    return;
+                }
+                
+                const marketplaceItem = {
+                    coin: { ...window.currentSellCoin },
+                    price: price,
+                    sellerId: this.userId,
+                    sellerName: this.userName,
+                    sellerRating: this.getUserRating(),
+                    timestamp: Date.now(),
+                    globalId: `global_${this.userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                };
+                
+                // Добавляем на сервер
+                try {
+                    const response = await fetch(`${CONFIG.SERVER_URL}/api/marketplace`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(marketplaceItem)
+                    });
+                    
+                    if (response.ok) {
+                        this.marketplace.push(marketplaceItem);
+                    }
+                } catch (error) {
+                    console.log('Ошибка добавления на сервер, используем локально');
+                    this.marketplace.push(marketplaceItem);
+                }
+                
+                // Удаляем из коллекции
+                this.collection.splice(collectionIndex, 1);
+                
+                this.saveGameData();
+                this.renderAll();
+                
+                this.closeModal('sellModal');
+                this.showNotification('✅ Монета выставлена на продажу!');
+                
+                window.currentSellCoin = null;
+                window.currentSellIndex = null;
+            }
+            
+            // ПОКУПКА С РЫНКА
+            async buyFromMarketplace(globalId) {
+                const itemIndex = this.marketplace.findIndex(item => item.globalId === globalId);
+                if (itemIndex === -1) {
+                    this.showNotification('Предложение не найдено', 'error');
+                    return;
+                }
+                
+                const item = this.marketplace[itemIndex];
+                
+                if (!item) {
+                    this.showNotification('Предложение не найдено', 'error');
+                    return;
+                }
+                
+                if (item.sellerId === this.userId) {
+                    this.showNotification('Нельзя купить свою же монету', 'error');
+                    return;
+                }
+                
+                if (this.balance < item.price) {
+                    this.showNotification('Недостаточно звезд', 'error');
+                    return;
+                }
+                
+                const commission = Math.floor(item.price * CONFIG.MARKETPLACE.COMMISSION);
+                
+                this.balance -= item.price;
+                this.stats.totalBought++;
+                this.stats.totalTransactions++;
+                
+                const purchasedCoin = {
+                    ...item.coin,
+                    purchaseId: `market_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    purchasedFrom: item.sellerName,
+                    purchasePrice: item.price,
+                    purchaseDate: Date.now()
+                };
+                
+                this.collection.push(purchasedCoin);
+                
+                // Удаляем с сервера
+                try {
+                    await fetch(`${CONFIG.SERVER_URL}/api/marketplace/${globalId}`, {
+                        method: 'DELETE'
+                    });
+                } catch (error) {
+                    console.log('Ошибка удаления с сервера');
+                }
+                
+                this.marketplace.splice(itemIndex, 1);
+                
+                this.saveGameData();
+                this.renderAll();
+                
+                this.showNotification(
+                    `🎉 Куплено: ${item.coin.name} за ${item.price} ⭐! ` +
+                    `(комиссия: ${commission} ⭐)`
+                );
+            }
+            
+            // ОТМЕНА ПРОДАЖИ
+            async cancelSale(globalId) {
+                const itemIndex = this.marketplace.findIndex(item => item.globalId === globalId);
+                if (itemIndex === -1) {
+                    this.showNotification('Предложение не найдено', 'error');
+                    return;
+                }
+                
+                const item = this.marketplace[itemIndex];
+                
+                if (item.sellerId === this.userId) {
+                    this.collection.push(item.coin);
+                    
+                    // Удаляем с сервера
+                    try {
+                        await fetch(`${CONFIG.SERVER_URL}/api/marketplace/${globalId}`, {
+                            method: 'DELETE'
+                        });
+                    } catch (error) {
+                        console.log('Ошибка удаления с сервера');
+                    }
+                    
+                    this.marketplace.splice(itemIndex, 1);
+                    
+                    this.saveGameData();
+                    this.renderAll();
+                    
+                    this.showNotification('✅ Продажа отменена, монета возвращена в коллекцию');
+                }
+            }
+            
+            // ЕЖЕДНЕВНЫЕ ПОДАРКИ
+            checkDailyReward() {
+                const lastReward = localStorage.getItem('lastDailyReward');
+                const today = new Date().toDateString();
+                
+                if (lastReward !== today) {
+                    // Можно показать уведомление о доступном подарке
+                }
+            }
+            
+            // ОБНОВЛЕНИЕ СТАТИСТИКИ
+            calculateStats() {
+                this.stats.totalCoins = this.collection.length;
+                this.stats.totalValue = this.collection.reduce((sum, coin) => sum + coin.price, 0);
+                this.stats.uniqueCoins = new Set(this.collection.map(c => c.id)).size;
+                
+                // Обновляем интерфейс
+                document.getElementById('statBalance').textContent = this.balance + ' ⭐';
+                document.getElementById('statTotalCoins').textContent = this.stats.totalCoins;
+                document.getElementById('statUniqueCoins').textContent = this.stats.uniqueCoins;
+                document.getElementById('statTotalValue').textContent = this.stats.totalValue + ' ⭐';
+                document.getElementById('statSold').textContent = this.stats.totalSold;
+                document.getElementById('statBought').textContent = this.stats.totalBought;
+                document.getElementById('statTransactions').textContent = this.stats.totalTransactions;
+            }
+            
+            updateMarketStats() {
+                const totalItems = this.marketplace.length;
+                const totalValue = this.marketplace.reduce((sum, item) => sum + item.price, 0);
+                const averagePrice = totalItems > 0 ? Math.floor(totalValue / totalItems) : 0;
+                
+                document.getElementById('marketTotal').textContent = totalItems;
+                document.getElementById('marketValue').textContent = totalValue + ' ⭐';
+                document.getElementById('marketAverage').textContent = averagePrice + ' ⭐';
+            }
+            
+            updateBalance() {
+                const balanceElement = document.getElementById('balance');
+                if (balanceElement) balanceElement.textContent = this.balance;
+            }
+            
+            // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+            getUserId() {
+                const tg = window.Telegram?.WebApp;
+                return tg?.initDataUnsafe?.user?.id || 'user_' + Math.random().toString(36).substr(2, 8);
+            }
+            
+            getUserName() {
+                const tg = window.Telegram?.WebApp;
+                const user = tg?.initDataUnsafe?.user;
+                if (user) {
+                    return user.first_name || user.username || 'Аноним';
+                }
+                return 'Игрок';
+            }
+            
+            getUserRating() {
+                return (4.5 + Math.random() * 0.5).toFixed(1);
+            }
+            
+            getRarityInfo(rarity) {
+                return CONFIG.RARITIES[rarity] || CONFIG.RARITIES.common;
+            }
+            
+            calculateMarketPrice(originalPrice, rarity) {
+                const rarityMultiplier = CONFIG.RARITIES[rarity].multiplier;
+                const minPrice = Math.max(1, Math.floor(originalPrice * 0.5));
+                const maxPrice = Math.floor(originalPrice * rarityMultiplier * 3);
+                return { minPrice, maxPrice };
+            }
+            
+            getTimeAgo(timestamp) {
+                const now = Date.now();
+                const diff = now - timestamp;
+                
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+                
+                if (days > 0) return `${days} д. назад`;
+                if (hours > 0) return `${hours} ч. назад`;
+                if (minutes > 0) return `${minutes} мин. назад`;
+                return 'только что';
+            }
+            
+            showNotification(message, type = 'success') {
+                const notif = document.getElementById('notification');
+                if (!notif) return;
+                
+                notif.textContent = message;
+                notif.className = `notification ${type}`;
+                notif.style.display = 'block';
+                
+                setTimeout(() => {
+                    notif.style.display = 'none';
+                }, 5000);
+            }
+            
+            showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.style.display = 'flex';
+            }
+            
+            closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.style.display = 'none';
+            }
+        }
+
+        // СИСТЕМА ПЛАТЕЖЕЙ
+        class PaymentSystem {
+            constructor() {
+                this.selectedPayment = 'stars';
+                this.selectedAmount = 100;
+                this.currentPaymentId = null;
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                const customAmountInput = document.getElementById('customAmount');
+                if (customAmountInput) {
+                    customAmountInput.addEventListener('input', (e) => {
+                        const value = parseInt(e.target.value);
+                        if (!isNaN(value) && value > 0) {
+                            this.selectedAmount = value;
+                            this.updateAmountButtons();
+                        }
+                    });
+                }
+            }
+            
+            selectPayment(method) {
+                this.selectedPayment = method;
+                this.updatePaymentUI();
+            }
+            
+            selectAmount(amount) {
+                this.selectedAmount = amount;
+                const customAmountInput = document.getElementById('customAmount');
+                if (customAmountInput) {
+                    customAmountInput.value = amount;
+                }
+                this.updateAmountButtons();
+            }
+            
+            updatePaymentUI() {
+                document.querySelectorAll('.payment-option').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                const selectedOption = document.querySelector(`[onclick="selectPayment('${this.selectedPayment}')"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+                
+                this.updateAmountButtons();
+            }
+            
+            updateAmountButtons() {
+                document.querySelectorAll('.amount-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                const selectedBtn = document.querySelector(`[onclick="selectAmount(${this.selectedAmount})"]`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('selected');
+                }
+            }
+            
+            startPayment() {
+                const customAmountInput = document.getElementById('customAmount');
+                const customAmount = customAmountInput ? parseInt(customAmountInput.value) : this.selectedAmount;
+                const amount = customAmount || this.selectedAmount;
+                
+                if (amount < 15 || amount > 100000) {
+                    game.showNotification('Сумма должна быть от 15 до 100,000 ⭐', 'error');
+                    return;
+                }
+                
+                this.currentPaymentId = `payment_${game.userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                if (this.selectedPayment === 'stars') {
+                    this.processStarsPayment(amount);
+                } else if (this.selectedPayment === 'ton') {
+                    this.processTonPayment(amount);
+                }
+            }
+            
+            processStarsPayment(amount) {
+                // Демо-режим: мгновенное пополнение
+                this.completePayment(amount);
+            }
+            
+            processTonPayment(amount) {
+                const tonAmount = (amount / CONFIG.PAYMENT_METHODS.TON.rate).toFixed(3);
+                const paymentAddress = CONFIG.PAYMENT_ADDRESSES.TON;
+                
+                const content = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 3em; margin-bottom: 16px;">⚡</div>
+                        <h3 style="color: #1f2937; margin-bottom: 8px;">Оплата TON</h3>
+                    </div>
+                    
+                    <div class="payment-info">
+                        <h4>📋 Инструкция по оплате</h4>
+                        <div style="display: grid; gap: 8px; margin: 16px 0;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Сумма:</span>
+                                <strong>${tonAmount} TON</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Курс:</span>
+                                <strong>1 TON = 150 ⭐</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Получите:</span>
+                                <strong style="color: #f59e0b;">${amount} ⭐</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-info">
+                        <p><strong>Переведите ${tonAmount} TON на кошелек:</strong></p>
+                        <div class="address-box">${paymentAddress}</div>
+                        <p style="margin-top: 12px;"><strong>В комментарии укажите ваш ID:</strong></p>
+                        <div class="address-box">${game.userId}</div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn" onclick="paymentSystem.completePayment(${amount})">
+                            ✅ Я оплатил, пополнить баланс
+                        </button>
+                        <button class="btn btn-secondary" onclick="paymentSystem.closePaymentModal()">
+                            ❌ Отмена
+                        </button>
+                    </div>
+                `;
+                
+                this.showPaymentModal('⚡ Оплата TON', content);
+            }
+            
+            completePayment(amount) {
+                const parsedAmount = parseInt(amount);
+                
+                if (isNaN(parsedAmount) || parsedAmount < 15) {
+                    game.showNotification('Неверная сумма', 'error');
+                    return;
+                }
+                
+                game.balance += parsedAmount;
+                game.stats.totalTransactions++;
+                
+                game.saveGameData();
+                game.updateBalance();
+                game.calculateStats();
+                
+                game.closeModal('paymentModal');
+                game.showNotification(`✅ Баланс пополнен на ${parsedAmount} ⭐!`);
+            }
+            
+            showPaymentModal(title, content) {
+                document.getElementById('paymentTitle').textContent = title;
+                document.getElementById('paymentContent').innerHTML = content;
+                game.showModal('paymentModal');
+            }
+            
+            closePaymentModal() {
+                game.closeModal('paymentModal');
+            }
+        }
+
+        // ГЛОБАЛЬНЫЕ ФУНКЦИИ
+        let game;
+        let paymentSystem;
+        window.currentSellCoin = null;
+        window.currentSellIndex = null;
+
+        // Запуск игры при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            game = new GameEngine();
+            paymentSystem = new PaymentSystem();
+            
+            // Автовыбор при загрузке
+            setTimeout(() => {
+                document.querySelector('.payment-option').classList.add('selected');
+                document.querySelector('.amount-btn:nth-child(4)').classList.add('selected');
+            }, 100);
+        });
+
+        // Функции для кнопок в HTML
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (sectionId === 'marketplace') {
+                game.loadMarketplace().then(() => {
+                    game.renderMarketplace();
+                    game.updateMarketStats();
+                });
+            } else if (sectionId === 'stats') {
+                game.calculateStats();
+                game.updateMarketStats();
+            }
+        }
+
+        function showCoinInfo(coinId) {
+            const coin = CONFIG.COINS.find(c => c.id === coinId);
+            if (!coin) return;
+            
+            const rarityInfo = game.getRarityInfo(coin.rarity);
+            const owned = game.collection.some(c => c.id === coinId);
+            
+            const content = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 4em; margin-bottom: 16px;">${coin.icon}</div>
+                    <h3 style="color: #1f2937; margin-bottom: 8px;">${coin.name}</h3>
+                    <div class="coin-rarity rarity-${coin.rarity}" style="margin-bottom: 12px;">
+                        ${rarityInfo.name}
+                    </div>
+                    <p style="color: #6b7280; margin-bottom: 16px;">${coin.description}</p>
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Издание:</span>
+                            <strong>${coin.edition}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Цена в магазине:</span>
+                            <strong style="color: #f59e0b;">${coin.price} ⭐</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>В вашей коллекции:</span>
+                            <strong>${owned ? '✅ Есть' : '❌ Нет'}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    ${!owned ? `
+                        <button class="btn" onclick="buyCoin(${coin.id}); closeModal('coinInfoModal')">
+                            Купить за ${coin.price} ⭐
+                        </button>
+                    ` : `
+                        <button class="btn" onclick="showSection('collection'); closeModal('coinInfoModal')">
+                            📦 Перейти к коллекции
+                        </button>
+                    `}
+                    <button class="btn btn-secondary" onclick="closeModal('coinInfoModal')">
+                        Закрыть
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('coinInfoTitle').textContent = coin.name;
+            document.getElementById('coinInfoContent').innerHTML = content;
+            game.showModal('coinInfoModal');
+        }
+
+        function buyCoin(coinId) {
+            game.buyCoin(coinId);
+        }
+
+        function sellCoin(collectionIndex) {
+            game.sellCoin(collectionIndex);
+        }
+
+        function confirmSell() {
+            game.confirmSell();
+        }
+
+        function buyFromMarketplace(globalId) {
+            game.buyFromMarketplace(globalId);
+        }
+
+        function cancelSale(globalId) {
+            game.cancelSale(globalId);
+        }
+
+        function selectPayment(method) {
+            paymentSystem.selectPayment(method);
+        }
+
+        function selectAmount(amount) {
+            paymentSystem.selectAmount(amount);
+        }
+
+        function startPayment() {
+            paymentSystem.startPayment();
+        }
+
+        function closeModal(modalId) {
+            game.closeModal(modalId);
+        }
+
+        // ЕЖЕДНЕВНЫЕ ПОДАРКИ
+        function claimDailyReward() {
+            const lastReward = localStorage.getItem('lastDailyReward');
+            const today = new Date().toDateString();
+            
+            if (lastReward === today) {
+                game.showNotification('❌ Сегодня ты уже получал подарок! Возвращайся завтра!', 'error');
+                return;
+            }
+            
+            const reward = 25;
+            game.balance += reward;
+            game.saveGameData();
+            game.updateBalance();
+            localStorage.setItem('lastDailyReward', today);
+            
+            game.showNotification(`🎁 Ура! Ты получил ${reward} ⭐! Заходи завтра еще!`);
+            showSection('shop');
+        }
+
+        // ПРИГЛАШЕНИЕ ДРУЗЕЙ
+        function updateInviteLink() {
+            const inviteLinkElement = document.getElementById('inviteLink');
+            if (inviteLinkElement) {
+                inviteLinkElement.textContent = `https://t.me/your_bot?start=invite_${game.userId}`;
+            }
+        }
+
+        function copyInviteLink() {
+            const link = `https://t.me/your_bot?start=invite_${game.userId}`;
+            navigator.clipboard.writeText(link);
+            game.showNotification('📋 Ссылка скопирована! Отправь другу!');
+        }
+
+        // Для отладки
+        window.game = game;
+        window.paymentSystem = paymentSystem;
+    </script>
+</body>
+</html>
